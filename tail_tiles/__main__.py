@@ -6,11 +6,34 @@ Controls: +/- adjust lines | r refresh | q quit
 """
 
 import curses
+import glob
 import json
 import os
+import readline
 import sys
 import time
 from pathlib import Path
+
+
+def _setup_readline():
+    """Setup readline with tab completion for file paths."""
+    def completer(text, state):
+        # Expand ~ to home directory
+        if text.startswith('~'):
+            text = os.path.expanduser(text)
+        # Add * for glob matching if no wildcard present
+        pattern = text + '*' if not any(c in text for c in '*?[') else text
+        matches = glob.glob(pattern)
+        # Add trailing slash for directories
+        matches = [m + '/' if os.path.isdir(m) else m for m in matches]
+        try:
+            return matches[state]
+        except IndexError:
+            return None
+
+    readline.set_completer(completer)
+    readline.set_completer_delims(' \t\n;')
+    readline.parse_and_bind('tab: complete')
 
 # Layout configurations: (rows, cols)
 LAYOUTS = {
@@ -230,6 +253,7 @@ def run_viewer(filepaths: list[str], layout: tuple[int, int], initial_lines: int
 
 def prompt_setup() -> tuple[list[str], tuple[int, int], int] | None:
     """Interactive setup prompts."""
+    _setup_readline()
     print("\n  \033[1mtail_tiles\033[0m - Multi-file tail viewer\n")
 
     # Check for existing sessions
