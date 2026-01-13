@@ -2,10 +2,12 @@
 
 from tail_tiles.__main__ import (
     LAYOUTS,
+    MAX_SESSIONS,
     TailTile,
     TileRenderer,
     clamp,
     load_session,
+    load_sessions,
     main,
     read_last_n_lines,
     run_viewer,
@@ -15,10 +17,12 @@ from tail_tiles.__main__ import (
 __version__ = "0.1.0"
 __all__ = [
     "LAYOUTS",
+    "MAX_SESSIONS",
     "TailTile",
     "TileRenderer",
     "clamp",
     "load_session",
+    "load_sessions",
     "main",
     "read_last_n_lines",
     "run_viewer",

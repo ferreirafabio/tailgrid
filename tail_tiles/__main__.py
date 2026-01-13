@@ -20,8 +20,9 @@ LAYOUTS = {
     '4': (2, 2),  # 2x2 grid
 }
 
+MAX_SESSIONS = 3
 CONFIG_DIR = Path.home() / ".config" / "tail_tiles"
-SESSION_FILE = CONFIG_DIR / "session.json"
+SESSIONS_FILE = CONFIG_DIR / "sessions.json"
 
 
 def read_last_n_lines(filepath: str, n: int) -> list[str]:
@@ -40,27 +41,44 @@ def clamp(value: int, min_val: int, max_val: int) -> int:
 
 
 def save_session(paths: list[str], layout: tuple[int, int], lines: int) -> None:
-    """Save session to config file."""
+    """Save session to config file, keeping last 3 unique sessions."""
     try:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        SESSION_FILE.write_text(json.dumps({
-            "paths": paths,
-            "layout": list(layout),
-            "lines": lines
-        }))
+        sessions = load_sessions()
+
+        new_session = {"paths": paths, "layout": list(layout), "lines": lines}
+
+        # Remove duplicate if exists (same paths)
+        sessions = [s for s in sessions if s["paths"] != paths]
+
+        # Add new session at front
+        sessions.insert(0, new_session)
+
+        # Keep only last MAX_SESSIONS
+        sessions = sessions[:MAX_SESSIONS]
+
+        SESSIONS_FILE.write_text(json.dumps(sessions, indent=2))
     except OSError:
         pass
 
 
-def load_session() -> tuple[list[str], tuple[int, int], int] | None:
-    """Load session from config file."""
+def load_sessions() -> list[dict]:
+    """Load all sessions from config file."""
     try:
-        if not SESSION_FILE.exists():
-            return None
-        data = json.loads(SESSION_FILE.read_text())
-        return data["paths"], tuple(data["layout"]), data["lines"]
-    except (OSError, json.JSONDecodeError, KeyError):
+        if not SESSIONS_FILE.exists():
+            return []
+        return json.loads(SESSIONS_FILE.read_text())
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
+def load_session(index: int = 0) -> tuple[list[str], tuple[int, int], int] | None:
+    """Load a specific session by index."""
+    sessions = load_sessions()
+    if index >= len(sessions):
         return None
+    s = sessions[index]
+    return s["paths"], tuple(s["layout"]), s["lines"]
 
 
 class TailTile:
@@ -107,7 +125,6 @@ class TileRenderer:
         self.stdscr.clear()
         h, w = self.stdscr.getmaxyx()
 
-        # Calculate tile dimensions
         tile_h = (h - 1) // self.rows
         tile_w = w // self.cols
 
@@ -121,7 +138,6 @@ class TileRenderer:
     def _draw_tile(self, tile: TailTile, y: int, x: int, h: int, w: int, idx: int) -> None:
         """Draw a single tile with border and content."""
         try:
-            # Header with filename
             name = os.path.basename(tile.filepath)
             if len(name) > w - 6:
                 name = name[:w - 9] + "..."
@@ -129,7 +145,6 @@ class TileRenderer:
             header = "┌" + header + "─" * (w - len(header) - 2) + "┐"
             self.stdscr.addstr(y, x, header[:w], curses.A_DIM)
 
-            # Path (dimmed)
             path = tile.filepath
             if len(path) > w - 4:
                 path = "…" + path[-(w - 5):]
@@ -137,7 +152,6 @@ class TileRenderer:
             self.stdscr.addstr(y + 1, x + 1, f" {path}"[:w - 3], curses.A_DIM)
             self.stdscr.addstr(y + 1, x + w - 1, "│", curses.A_DIM)
 
-            # Content
             content = tile.get_content()
             for row in range(h - 3):
                 line_y = y + 2 + row
@@ -148,7 +162,6 @@ class TileRenderer:
                     self.stdscr.addstr(line_y, x + 1, f" {content[row]}"[:w - 3])
                 self.stdscr.addstr(line_y, x + w - 1, "│", curses.A_DIM)
 
-            # Footer
             self.stdscr.addstr(y + h - 1, x, "└" + "─" * (w - 2) + "┘", curses.A_DIM)
         except curses.error:
             pass
@@ -173,7 +186,6 @@ class TileRenderer:
 
 def run_viewer(filepaths: list[str], layout: tuple[int, int], initial_lines: int) -> None:
     """Main curses application loop."""
-    # Save session for restore
     save_session(filepaths, layout, initial_lines)
 
     def main(stdscr):
@@ -220,26 +232,35 @@ def prompt_setup() -> tuple[list[str], tuple[int, int], int] | None:
     """Interactive setup prompts."""
     print("\n  \033[1mtail_tiles\033[0m - Multi-file tail viewer\n")
 
-    # Check for existing session
-    session = load_session()
-    if session:
-        paths, layout, lines = session
-        print(f"  Last session: {len(paths)} file(s), {lines} lines")
-        for p in paths:
-            print(f"    • {p}")
-        print()
-        restore = input("  Restore last session? [Y/n]: ").strip().lower()
-        if restore != 'n':
-            print("\n  Restoring session...")
-            time.sleep(0.3)
-            return session
+    # Check for existing sessions
+    sessions = load_sessions()
+    if sessions:
+        print("  Recent sessions:")
+        for i, s in enumerate(sessions):
+            paths = s["paths"]
+            lines = s["lines"]
+            print(f"    {i + 1}) {len(paths)} file(s), {lines} lines")
+            for p in paths:
+                print(f"       • {p}")
+        print(f"    n) New session\n")
+
+        choice = input("  Select [1/2/3/n]: ").strip().lower()
+        if choice in ['1', '2', '3']:
+            idx = int(choice) - 1
+            if idx < len(sessions):
+                print("\n  Restoring session...")
+                time.sleep(0.3)
+                return load_session(idx)
         print()
 
-    print("  Select layout:")
-    print("    1) Single file")
-    print("    2) 2 files (vertical │)")
-    print("    3) 2 files (horizontal ─)")
-    print("    4) 4 files (2×2 grid)\n")
+    print("  Select layout:\n")
+    print("    1) Single        2) Vertical      3) Horizontal    4) Grid")
+    print("       ┌─────┐          ┌──┬──┐          ┌─────┐          ┌──┬──┐")
+    print("       │     │          │  │  │          │  1  │          │ 1│ 2│")
+    print("       │  1  │          │ 1│ 2│          ├─────┤          ├──┼──┤")
+    print("       │     │          │  │  │          │  2  │          │ 3│ 4│")
+    print("       └─────┘          └──┴──┘          └─────┘          └──┴──┘")
+    print()
 
     try:
         choice = input("  Layout [1-4]: ").strip()
