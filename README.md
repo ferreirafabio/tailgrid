@@ -1,5 +1,7 @@
 # tail_tiles
 
+![tail_tiles logo](tail_tiles.png)
+
 > Multi-file tail viewer for your terminal.
 
 A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 4 files at once in a clean tiled layout.
