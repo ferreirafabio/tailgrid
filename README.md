@@ -124,8 +124,9 @@ python -m pytest tests/ -v
 ## Requirements
 
 - Python 3.10+
+- tail
 - Linux or macOS (curses is not available on Windows)
 
 ## License
 
-MIT
+Apache 2.0
