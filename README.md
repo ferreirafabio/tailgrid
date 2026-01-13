@@ -1,6 +1,6 @@
 # Tail-Tiles
 
-
+![tail_tiles logo](tail_tiles.png)
 
 > Multi-tile tail viewer for terminal in <200 lines of code
 
