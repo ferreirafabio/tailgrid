@@ -108,7 +108,7 @@ python -m pytest tests/ -v
 ├── pyproject.toml
 ├── tail_tiles
 │   ├── __init__.py         # Package exports
-│   └── __main__.py         # All the code (~290 lines)
+│   └── __main__.py         # All the code (~185 lines)
 └── tests
     ├── __init__.py
     └── test_tail_tiles.py  # 15 tests
