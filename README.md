@@ -4,7 +4,7 @@
 
 > Multi-file tail viewer for your terminal.
 
-A minimal, dependency-free (except for tail) Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 4 files at once in a clean tiled layout with a small session manager in under 200 lines of code.
+A minimal, dependency-free (except for tail) Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 4 files at once in a clean tiled layout with a small session manager in under 200 lines of code. Created with Claude Code (Opus 4.5).
 
 ## Quick start
 
