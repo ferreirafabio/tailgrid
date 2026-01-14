@@ -14,7 +14,7 @@
 
 <img src="tailgrid.png" alt="tailgrid screenshot" width="70%">
 
-A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. ~250 lines of code. Tested on Ubuntu and macOS.
+A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. ~280 lines of code. Tested on Ubuntu and macOS.
 
 ## Features
 
