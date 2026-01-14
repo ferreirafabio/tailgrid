@@ -18,16 +18,13 @@ A minimal, dependency-free Python tool to monitor multiple log files simultaneou
 
 ## Features
 
-- Zero dependencies (Python 3.10+ standard library only)
-- Up to 9 tiles in a 3×3 grid layout
-- Auto-layout based on file count
-- Session history (saves last 10 sessions)
-- Interactive file picker with directory browsing
-- Tab completion for manual path entry
-- Live updates (100ms polling)
-- Terminal resize support
+- **Zero dependencies** — Python 3.10+ standard library only
+- **Quick path** — `tailgrid /var/log/` auto-selects `.txt`/`.log` files
+- **Up to 9 tiles** — auto-layout or manual grid selection
+- **Session restore** — saves last 10 sessions
+- **Live updates** — 100ms polling, terminal resize support
 
-**Viewer controls:** `+`/`-` adjust lines | `r` refresh | `q` quit
+**Viewer:** `+`/`-` lines | `r` refresh | `q` quit
 
 ## Quick start
 
