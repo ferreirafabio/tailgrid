@@ -17,6 +17,19 @@
 
 A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. ~250 lines of code. Tested on Ubuntu and macOS.
 
+## Features
+
+- Zero dependencies (Python 3.10+ standard library only)
+- Up to 9 tiles in a 3×3 grid layout
+- Auto-layout based on file count
+- Session history (saves last 10 sessions)
+- Interactive file picker with directory browsing
+- Tab completion for manual path entry
+- Live updates (100ms polling)
+- Terminal resize support
+
+**Viewer controls:** `+`/`-` adjust lines | `r` refresh | `q` quit
+
 ## Quick start
 
 **From PyPI:**
@@ -31,17 +44,6 @@ git clone https://github.com/ferreirafabio/tailgrid.git
 cd tailgrid
 python -m tailgrid
 ```
-
-That's it. The interactive menu guides you through selecting files.
-
-## Viewer controls
-
-| Key | Action |
-|-----|--------|
-| `+` / `=` | Show more lines |
-| `-` / `_` | Show fewer lines |
-| `r` | Force refresh |
-| `q` | Quit |
 
 ## Menu
 
@@ -131,19 +133,6 @@ Select `2` to manually enter paths and pick a layout:
 
   Starting with 4 file(s)...
 ```
-
-## Features
-
-- **Zero dependencies** - Uses only Python 3.10+ standard library (curses, readline)
-- **Interactive file picker** - Browse directories and select files with spacebar
-- **Up to 9 tiles** - Support for 3×3 grid layout
-- **Auto-layout** - Automatically picks best layout based on file count
-- **Session history** - Saves and restores last 10 sessions
-- **Instant menus** - No Enter key needed for menu selections
-- **Tab completion** - Auto-complete file paths when entering manually
-- **Live updates** - Polls files for changes (100ms interval)
-- **Terminal resizing** - Automatically adapts to window size changes
-- **Clean UI** - Minimalistic curses interface with unicode box-drawing
 
 ## Requirements
 
