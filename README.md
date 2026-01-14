@@ -1,9 +1,6 @@
 # tailgrid
 
 [![CI](https://github.com/ferreirafabio/tailgrid/actions/workflows/ci.yml/badge.svg)](https://github.com/ferreirafabio/tailgrid/actions/workflows/ci.yml)
-[![PyPI Downloads](https://img.shields.io/pepy/dt/tailgrid)](https://pepy.tech/project/tailgrid)
-[![PyPI Version](https://img.shields.io/pypi/v/tailgrid)](https://pypi.org/project/tailgrid/)
-[![GitHub Stars](https://img.shields.io/github/stars/ferreirafabio/tailgrid)](https://github.com/ferreirafabio/tailgrid/stargazers)
 
 > Multi-tile tail viewer for terminal in under 280 lines of code
 
