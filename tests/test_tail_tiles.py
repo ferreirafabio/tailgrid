@@ -113,3 +113,32 @@ class TestLayouts:
         assert LAYOUTS['2'] == (2, 1)
         assert LAYOUTS['3'] == (1, 2)
         assert LAYOUTS['4'] == (2, 2)
+
+
+class TestAutoLayout:
+    """Tests for auto_layout function."""
+
+    def test_single_file(self):
+        from tail_tiles import auto_layout
+        assert auto_layout(1) == (1, 1)
+
+    def test_two_files_returns_none(self):
+        from tail_tiles import auto_layout
+        assert auto_layout(2) is None  # User chooses vertical or horizontal
+
+    def test_three_files(self):
+        from tail_tiles import auto_layout
+        assert auto_layout(3) == (2, 2)
+
+    def test_four_files(self):
+        from tail_tiles import auto_layout
+        assert auto_layout(4) == (2, 2)
+
+    def test_five_to_nine_files(self):
+        from tail_tiles import auto_layout
+        assert auto_layout(5) == (3, 3)
+        assert auto_layout(9) == (3, 3)
+
+    def test_more_than_nine_files(self):
+        from tail_tiles import auto_layout
+        assert auto_layout(10) == (3, 3)

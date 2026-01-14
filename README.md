@@ -6,9 +6,9 @@
 
 <img src="tail_tiles.png" alt="tail_tiles logo" width="70%">
 
-> Multi-tile tail viewer for terminal in <200 lines of code
+> Multi-tile tail viewer for terminal in under 250 lines of code
 
-A minimal, dependency-free (except for tail) Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 4 files at once in a clean tiled layout with a small session manager in under 200 lines of code. Tested under Ubuntu and macOS. Created with Claude Code (Opus 4.5).
+A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. Features an interactive file picker and session manager in under 250 lines of code. Tested under Ubuntu and macOS. Created with Claude Code (Opus 4.5).
 
 ## Quick start
 
@@ -25,7 +25,51 @@ cd tail_tiles
 python -m tail_tiles
 ```
 
-That's it. The interactive menu guides you through selecting a layout and file paths.
+That's it. The interactive menu guides you through selecting files.
+
+## Browse directory (new in v0.2.0)
+
+Select `b` to browse a directory and pick files interactively:
+
+```
+  tail_tiles - Multi-file tail viewer
+
+    b) Browse directory
+    m) Add paths manually
+
+  Select [b/m]: b
+
+  Directory path: /var/log/
+```
+
+The file picker lets you select multiple files:
+
+```
+ Select files from: /var/log/
+ ─────────────────────────────────────
+ [x] auth.log
+ [ ] boot.log
+ [x] syslog
+ [ ] kern.log
+ [x] dpkg.log
+
+ 3/9 selected │ ↑↓/jk nav │ SPACE sel │ a all │ ENTER ok │ q quit
+```
+
+**File picker controls:**
+| Key | Action |
+|-----|--------|
+| `↑`/`↓` or `j`/`k` | Navigate |
+| `Space` | Select/deselect file (moves to next) |
+| `a` | Select/deselect all |
+| `Enter` | Confirm selection |
+| `q` | Cancel |
+
+Layout is auto-selected based on file count:
+- 1 file → Single
+- 2 files → Choose vertical or horizontal
+- 3-4 files → 2×2 grid
+- 5-9 files → 3×3 grid
 
 ## Session restore
 
@@ -43,28 +87,29 @@ tail_tiles remembers your last 3 sessions. On startup, quickly restore any previ
        • ~/app/logs/access.log
        • ~/app/logs/debug.log
        • ~/app/logs/info.log
-    n) New session
+    b) Browse directory
+    m) Add paths manually
 
-  Select [1/2/n]: 1
+  Select [1/2/b/m]: 1
 
   Restoring session...
 ```
 
 Sessions are stored in `~/.config/tail_tiles/sessions.json`.
 
-## Layout selection
+## Manual layout selection
 
-Start a new session and pick a layout:
+Select `m` to manually enter paths and pick a layout:
 
 ```
   Select layout:
 
     1) Single        2) Vertical      3) Horizontal    4) Grid
        ┌─────┐          ┌──┬──┐          ┌─────┐          ┌──┬──┐
-       │     │          │  │  │          │  1  │          │ 1│ 2│
-       │  1  │          │ 1│ 2│          ├─────┤          ├──┼──┤
-       │     │          │  │  │          │  2  │          │ 3│ 4│
-       └─────┘          └──┴──┘          └─────┘          └──┴──┘
+       │  1  │          │ 1│ 2│          │  1  │          │ 1│ 2│
+       └─────┘          └──┴──┘          ├─────┤          ├──┼──┤
+                                         │  2  │          │ 3│ 4│
+                                         └─────┘          └──┴──┘
 
   Layout [1-4]: 4
 
@@ -75,12 +120,10 @@ Start a new session and pick a layout:
     [3] ~/app/logs/error.log
     [4] ~/app/logs/access.log
 
-  Lines to show [10]: 15
-
-  Starting with 4 file(s), 15 lines each...
+  Starting with 4 file(s)...
 ```
 
-## Controls
+## Viewer controls
 
 | Key | Action |
 |-----|--------|
@@ -92,10 +135,12 @@ Start a new session and pick a layout:
 ## Features
 
 - **Zero dependencies** - Uses only Python 3.10+ standard library (curses, readline)
+- **Interactive file picker** - Browse directories and select files with spacebar
+- **Up to 9 tiles** - Support for 3×3 grid layout
+- **Auto-layout** - Automatically picks best layout based on file count
 - **Session history** - Saves and restores last 3 sessions
-- **Tab completion** - Auto-complete file paths when entering
+- **Tab completion** - Auto-complete file paths when entering manually
 - **Live updates** - Polls files for changes (100ms interval)
-- **Flexible layouts** - Single, vertical split, horizontal split, or 2×2 grid
 - **Terminal resizing** - Automatically adapts to window size changes
 - **Clean UI** - Minimalistic curses interface with unicode box-drawing
 
@@ -115,10 +160,10 @@ python -m pytest tests/ -v
 ├── pyproject.toml
 ├── tail_tiles
 │   ├── __init__.py         # Package exports
-│   └── __main__.py         # All the code (~185 lines)
+│   └── __main__.py         # All the code (~215 lines)
 └── tests
     ├── __init__.py
-    └── test_tail_tiles.py  # 15 tests
+    └── test_tail_tiles.py  # 21 tests
 ```
 
 ## Requirements
@@ -129,4 +174,4 @@ python -m pytest tests/ -v
 
 ## License
 
-Apache 2.0
+Apache-2.0

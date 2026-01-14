@@ -1,6 +1,6 @@
 """tail_tiles - Multi-tile tail viewer for terminal."""
 
-__version__ = "0.1.3"
+__version__ = "0.2.0"
 
 def __getattr__(name):
     """Lazy import to avoid RuntimeWarning when running as module."""
@@ -11,7 +11,9 @@ def __getattr__(name):
         "MAX_SESSIONS": _main.MAX_SESSIONS,
         "TailTile": _main.TailTile,
         "TileRenderer": _main.TileRenderer,
+        "auto_layout": _main.auto_layout,
         "clamp": _main.clamp,
+        "file_picker": _main.file_picker,
         "load_session": _main.load_session,
         "load_sessions": _main.load_sessions,
         "main": _main.main,
