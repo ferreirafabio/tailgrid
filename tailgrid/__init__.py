@@ -1,11 +1,11 @@
-"""tail_tiles - Multi-tile tail viewer for terminal."""
+"""tailgrid - Multi-tile tail viewer for terminal."""
 
-__version__ = "0.2.6"
+__version__ = "0.3.0"
 
 def __getattr__(name):
     """Lazy import to avoid RuntimeWarning when running as module."""
     import importlib
-    _main = importlib.import_module("tail_tiles.__main__")
+    _main = importlib.import_module("tailgrid.__main__")
     _exports = {
         "LAYOUTS": _main.LAYOUTS,
         "MAX_SESSIONS": _main.MAX_SESSIONS,

@@ -1,28 +1,26 @@
-# Tail-Tiles
+# tailgrid
 
-[![PyPI Downloads](https://img.shields.io/pepy/dt/tail-tiles)](https://pepy.tech/project/tail-tiles)
-[![PyPI Version](https://img.shields.io/pypi/v/tail-tiles)](https://pypi.org/project/tail-tiles/)
-[![GitHub Stars](https://img.shields.io/github/stars/ferreirafabio/tail_tiles)](https://github.com/ferreirafabio/tail_tiles/stargazers)
+[![PyPI Downloads](https://img.shields.io/pepy/dt/tailgrid)](https://pepy.tech/project/tailgrid)
+[![PyPI Version](https://img.shields.io/pypi/v/tailgrid)](https://pypi.org/project/tailgrid/)
+[![GitHub Stars](https://img.shields.io/github/stars/ferreirafabio/tailgrid)](https://github.com/ferreirafabio/tailgrid/stargazers)
 
-<img src="tail_tiles.png" alt="tail_tiles logo" width="70%">
+> Multi-tile tail viewer for terminal in under 280 lines of code
 
-> Multi-tile tail viewer for terminal in under 250 lines of code
-
-A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. Features an interactive file picker and session manager in under 250 lines of code. Tested under Ubuntu and macOS. Created with Claude Code (Opus 4.5).
+A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. Features an interactive file picker and session manager. Tested under Ubuntu and macOS.
 
 ## Quick start
 
 **From PyPI:**
 ```bash
-pip install tail-tiles
-tail-tiles
+pip install tailgrid
+tailgrid
 ```
 
 **From source:**
 ```bash
-git clone https://github.com/ferreirafabio/tail_tiles.git
-cd tail_tiles
-python -m tail_tiles
+git clone https://github.com/ferreirafabio/tailgrid.git
+cd tailgrid
+python -m tailgrid
 ```
 
 That's it. The interactive menu guides you through selecting files.
@@ -32,7 +30,7 @@ That's it. The interactive menu guides you through selecting files.
 No Enter key needed - just press the number:
 
 ```
-  tail_tiles - Multi-file tail viewer
+  tailgrid - Multi-file tail viewer
 
     1) Browse directory
     2) Add paths manually
@@ -98,7 +96,7 @@ Select `3` from main menu to restore one of the last 10 sessions:
   Select [0-1]:
 ```
 
-Sessions are stored in `~/.config/tail_tiles/sessions.json`.
+Sessions are stored in `~/.config/tailgrid/sessions.json`.
 
 ## Manual layout selection
 
@@ -162,18 +160,17 @@ python -m pytest tests/ -v
 ├── LICENSE
 ├── README.md
 ├── pyproject.toml
-├── tail_tiles
+├── tailgrid
 │   ├── __init__.py         # Package exports
-│   └── __main__.py         # All the code (~215 lines)
+│   └── __main__.py         # All the code (~280 lines)
 └── tests
     ├── __init__.py
-    └── test_tail_tiles.py  # 21 tests
+    └── test_tailgrid.py    # 21 tests
 ```
 
 ## Requirements
 
 - Python 3.10+
-- tail
 - Linux or macOS (curses is not available on Windows)
 
 ## License

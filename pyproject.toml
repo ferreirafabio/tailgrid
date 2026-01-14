@@ -1,12 +1,12 @@
 [project]
-name = "tail_tiles"
-version = "0.2.6"
+name = "tailgrid"
+version = "0.3.0"
 description = "Multi-tile tail viewer for terminal"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [{ name = "Fabio Ferreira" }]
-keywords = ["tail", "terminal", "curses", "log", "viewer"]
+keywords = ["tail", "terminal", "curses", "log", "viewer", "grid"]
 classifiers = [
     "Environment :: Console :: Curses",
     "Operating System :: POSIX",
@@ -20,7 +20,7 @@ classifiers = [
 dev = ["pytest>=7.0"]
 
 [project.scripts]
-tail-tiles = "tail_tiles:main"
+tailgrid = "tailgrid:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

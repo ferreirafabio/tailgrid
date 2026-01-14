@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
-"""tail_tiles - Multi-tile tail viewer. Controls: +/- lines | r refresh | q quit"""
+"""tailgrid - Multi-tile tail viewer. Controls: +/- lines | r refresh | q quit"""
 
-import curses, glob, json, os, readline, sys, termios, time, tty
+import curses, glob, json, os, readline, select, sys, termios, time, tty
 from pathlib import Path
 
 LAYOUTS = {'1': (1, 1), '2': (2, 1), '3': (1, 2), '4': (2, 2), '5': (3, 3), '9': (3, 3)}
-MAX_SESSIONS, CONFIG_DIR = 10, Path.home() / ".config" / "tail_tiles"
+MAX_SESSIONS, CONFIG_DIR = 10, Path.home() / ".config" / "tailgrid"
 SESSIONS_FILE = CONFIG_DIR / "sessions.json"
 
-def _getch(read_all=False):
-    """Read a single character without waiting for Enter. If read_all=True, read all available chars (for paste)."""
-    import select
+def _getch():
+    """Read a single character without waiting for Enter. For menu navigation only."""
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     try:
         tty.setraw(fd)
         ch = sys.stdin.read(1)
-        if ch == '\x03': raise KeyboardInterrupt  # Ctrl+C
-        if read_all:  # Read any remaining buffered input (paste)
-            while select.select([sys.stdin], [], [], 0.01)[0]:
-                more = sys.stdin.read(1)
-                if more == '\x03': raise KeyboardInterrupt
-                ch += more
+        if ch == '\x03': raise KeyboardInterrupt
+        # Drain any extra buffered input (e.g., from accidental paste)
+        while select.select([sys.stdin], [], [], 0.05)[0]:
+            more = sys.stdin.read(1)
+            if more == '\x03': raise KeyboardInterrupt
         return ch
     finally: termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
@@ -135,7 +133,7 @@ class TileRenderer:
         except curses.error: pass
 
     def _draw_status(self, h: int, w: int):
-        status = f" tail_tiles │ lines: {self.line_count} │ +/- adjust │ r refresh │ q quit "
+        status = f" tailgrid │ lines: {self.line_count} │ +/- adjust │ r refresh │ q quit "
         try: self.stdscr.addstr(h - 1, 0, status[:w-1].ljust(w-1), curses.A_REVERSE)
         except curses.error: pass
 
@@ -169,73 +167,73 @@ def run_viewer(filepaths: list[str], layout: tuple[int, int], initial_lines: int
             if redraw: renderer.render(); redraw = False
     curses.wrapper(main)
 
-def _input_with_escape(prompt: str) -> str | None:
-    """Input that allows instant b=back, q=quit, or full text entry."""
-    print(prompt, end='', flush=True)
-    first = _getch(read_all=True)  # Read all available chars (handles paste)
-    if len(first) == 1:
-        if first.lower() == 'q': print(first); return None
-        if first.lower() == 'b' or first == '\n': print(first); return ""
-    # Show what was typed/pasted and continue with readline
-    print(first, end='', flush=True)
+def _input_with_readline(prompt: str) -> str | None:
+    """Input with tab completion. Returns None on quit, empty string on back."""
     _setup_readline()
-    try: rest = input()
+    try:
+        val = input(prompt).strip()
+        if val.lower() == 'q': return None
+        if val.lower() == 'b' or not val: return ""
+        return val
     except (EOFError, KeyboardInterrupt): return None
-    return first + rest
 
 def _browse_directory():
-    try:
-        directory = _input_with_escape("\n  Directory path (b=back, q=quit): ")
-        if directory is None: return None
-        if not directory: return "back"
-        directory = directory.strip()
-        if not directory: return "back"
-        paths = file_picker(directory)
-        if not paths: return "back"
-        if len(paths) > 9: print(f"\n  Selected {len(paths)} files, using first 9."); paths = paths[:9]
-        layout = auto_layout(len(paths))
-        if layout is None:  # 2 files - ask user
-            print("\n  2 files: v=vertical, h=horizontal (b=back, q=quit): ", end='', flush=True)
-            ch = _getch().lower(); print()
-            if ch == 'q': return None
-            if ch == 'b': return "back"
-            layout = (1, 2) if ch == 'h' else (2, 1)
-        names = {(1,1): "Single", (2,1): "Vertical", (1,2): "Horizontal", (2,2): "2x2 Grid", (3,3): "3x3 Grid"}
-        print(f"\n  {len(paths)} file(s) → {names.get(layout, 'Grid')}")
-        for p in paths: print(f"    • {p}")
-        print(f"\n  Starting..."); time.sleep(0.3)
-        return paths, layout, 10
-    except (EOFError, KeyboardInterrupt): print(); return None
+    while True:  # Loop for directory selection
+        try:
+            directory = _input_with_readline("\n  Directory path (b=back, q=quit): ")
+            if directory is None: return None
+            if not directory: return "back"
+            directory = directory.strip()
+            if not directory: return "back"
+            paths = file_picker(directory)
+            if not paths: continue  # Back to directory input
+            if len(paths) > 9: print(f"\n  Selected {len(paths)} files, using first 9."); paths = paths[:9]
+            layout = auto_layout(len(paths))
+            if layout is None:  # 2 files - ask user
+                print("\n  2 files: v=vertical, h=horizontal (b=back, q=quit): ", end='', flush=True)
+                ch = _getch().lower(); print(ch)
+                if ch == 'q': return None
+                if ch == 'b': continue  # Back to directory input
+                layout = (1, 2) if ch == 'h' else (2, 1)
+            names = {(1,1): "Single", (2,1): "Vertical", (1,2): "Horizontal", (2,2): "2x2 Grid", (3,3): "3x3 Grid"}
+            print(f"\n  {len(paths)} file(s) → {names.get(layout, 'Grid')}")
+            for p in paths: print(f"    • {p}")
+            print(f"\n  Starting..."); time.sleep(0.3)
+            return paths, layout, 10
+        except (EOFError, KeyboardInterrupt): print(); return None
 
 def _add_paths_manually():
-    print("\n  Select layout:\n")
-    print("    1) Single        2) Vertical      3) Horizontal    4) 2x2 Grid     5) 3x3 Grid")
-    print("       ┌─────┐          ┌──┬──┐          ┌─────┐          ┌──┬──┐         ┌──┬──┬──┐")
-    print("       │  1  │          │ 1│ 2│          │  1  │          │ 1│ 2│         │ 1│ 2│ 3│")
-    print("       └─────┘          └──┴──┘          ├─────┤          ├──┼──┤         ├──┼──┼──┤")
-    print("                                         │  2  │          │ 3│ 4│         │ 4│ 5│ 6│")
-    print("                                         └─────┘          └──┴──┘         ├──┼──┼──┤")
-    print("                                                                          │ 7│ 8│ 9│")
-    print("                                                                          └──┴──┴──┘\n")
-    print("  Layout 1-5 (b=back, q=quit): ", end='', flush=True)
-    try:
-        choice = _getch(); print(choice)
-        if choice.lower() == 'q': return None
-        if choice.lower() == 'b': return "back"
-        layout = LAYOUTS.get(choice, LAYOUTS['1']); max_files = layout[0] * layout[1]
-        print(f"\n  Enter {max_files} file path(s) (b=back, q=quit):\n"); paths = []
-        for i in range(max_files):
-            path = _input_with_escape(f"    [{i+1}] ")
-            if path is None: return None
-            path = path.strip()
-            if not path:
-                if not paths: return "back"
-                break
-            paths.append(os.path.expanduser(path))
-            if not os.path.exists(path): print("        ↳ will show when created")
-        print(f"\n  Starting with {len(paths)} file(s)..."); time.sleep(0.3)
-        return paths, layout, 10
-    except (EOFError, KeyboardInterrupt): print(); return None
+    while True:  # Loop for layout selection
+        print("\n  Select layout:\n")
+        print("    1) Single        2) Vertical      3) Horizontal    4) 2x2 Grid     5) 3x3 Grid")
+        print("       ┌─────┐          ┌──┬──┐          ┌─────┐          ┌──┬──┐         ┌──┬──┬──┐")
+        print("       │  1  │          │ 1│ 2│          │  1  │          │ 1│ 2│         │ 1│ 2│ 3│")
+        print("       └─────┘          └──┴──┘          ├─────┤          ├──┼──┤         ├──┼──┼──┤")
+        print("                                         │  2  │          │ 3│ 4│         │ 4│ 5│ 6│")
+        print("                                         └─────┘          └──┴──┘         ├──┼──┼──┤")
+        print("                                                                          │ 7│ 8│ 9│")
+        print("                                                                          └──┴──┴──┘\n")
+        print("  Layout 1-5 (b=back, q=quit): ", end='', flush=True)
+        try:
+            choice = _getch(); print(choice)
+            if choice.lower() == 'q': return None
+            if choice.lower() == 'b': return "back"
+            layout = LAYOUTS.get(choice, LAYOUTS['1']); max_files = layout[0] * layout[1]
+            print(f"\n  Enter {max_files} file path(s) (b=back, q=quit):\n"); paths = []
+            back_to_layout = False
+            for i in range(max_files):
+                path = _input_with_readline(f"    [{i+1}] ")
+                if path is None: return None
+                path = path.strip()
+                if not path:
+                    if not paths: back_to_layout = True; break  # Back to layout selection
+                    break
+                paths.append(os.path.expanduser(path))
+                if not os.path.exists(path): print("        ↳ will show when created")
+            if back_to_layout: continue  # Go back to layout selection
+            print(f"\n  Starting with {len(paths)} file(s)..."); time.sleep(0.3)
+            return paths, layout, 10
+        except (EOFError, KeyboardInterrupt): print(); return None
 
 def _resume_session():
     sessions = load_sessions()
@@ -244,7 +242,7 @@ def _resume_session():
     for i, s in enumerate(sessions):
         print(f"    {i}) {len(s['paths'])} file(s), {s['lines']} lines")
         for p in s['paths']: print(f"       • {p}")
-    print(f"\n  Select 0-{len(sessions)-1} (b=back, q=quit): ", end='', flush=True)
+    print(f"  Select 0-{len(sessions)-1} (b=back, q=quit): ", end='', flush=True)
     try:
         choice = _getch(); print(choice)
         if choice.lower() == 'q': return None
@@ -257,7 +255,7 @@ def _resume_session():
 
 def prompt_setup():
     while True:
-        print("\n  \033[1mtail_tiles\033[0m - Multi-file tail viewer\n")
+        print("\n  \033[1mtailgrid\033[0m - Multi-file tail viewer\n")
         print("    1) Browse directory")
         print("    2) Add paths manually")
         print("    3) Resume session\n")
