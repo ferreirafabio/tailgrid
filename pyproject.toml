@@ -1,6 +1,6 @@
 [project]
 name = "tail_tiles"
-version = "0.2.4"
+version = "0.2.5"
 description = "Multi-tile tail viewer for terminal"
 readme = "README.md"
 license = "Apache-2.0"

@@ -4,7 +4,7 @@
 import curses, glob, json, os, readline, sys, termios, time, tty
 from pathlib import Path
 
-LAYOUTS = {'1': (1, 1), '2': (2, 1), '3': (1, 2), '4': (2, 2), '9': (3, 3)}
+LAYOUTS = {'1': (1, 1), '2': (2, 1), '3': (1, 2), '4': (2, 2), '5': (3, 3), '9': (3, 3)}
 MAX_SESSIONS, CONFIG_DIR = 10, Path.home() / ".config" / "tail_tiles"
 SESSIONS_FILE = CONFIG_DIR / "sessions.json"
 
@@ -165,11 +165,22 @@ def run_viewer(filepaths: list[str], layout: tuple[int, int], initial_lines: int
 
 def _input_with_escape(prompt: str) -> str | None:
     """Input that allows instant b=back, q=quit, or full text entry."""
+    import select
     print(prompt, end='', flush=True)
     first = _getch()
     if first.lower() == 'q': print(first); return None
     if first.lower() == 'b' or first == '\n': print(first); return ""
-    # Put first char back and use readline for rest
+    # Check for pasted content (more chars immediately available)
+    pasted = first
+    while select.select([sys.stdin], [], [], 0)[0]:
+        pasted += sys.stdin.read(1)
+    if len(pasted) > 1:  # Was a paste, return all of it
+        print(pasted, end='', flush=True)
+        _setup_readline()
+        try: rest = input()
+        except (EOFError, KeyboardInterrupt): return None
+        return pasted + rest
+    # Single char typed, use readline for rest
     print(first, end='', flush=True)
     _setup_readline()
     try: rest = input()
@@ -202,13 +213,15 @@ def _browse_directory():
 
 def _add_paths_manually():
     print("\n  Select layout:\n")
-    print("    1) Single        2) Vertical      3) Horizontal    4) Grid")
-    print("       ┌─────┐          ┌──┬──┐          ┌─────┐          ┌──┬──┐")
-    print("       │  1  │          │ 1│ 2│          │  1  │          │ 1│ 2│")
-    print("       └─────┘          └──┴──┘          ├─────┤          ├──┼──┤")
-    print("                                         │  2  │          │ 3│ 4│")
-    print("                                         └─────┘          └──┴──┘\n")
-    print("  Layout 1-4 (b=back, q=quit): ", end='', flush=True)
+    print("    1) Single        2) Vertical      3) Horizontal    4) 2x2 Grid     5) 3x3 Grid")
+    print("       ┌─────┐          ┌──┬──┐          ┌─────┐          ┌──┬──┐         ┌──┬──┬──┐")
+    print("       │  1  │          │ 1│ 2│          │  1  │          │ 1│ 2│         │ 1│ 2│ 3│")
+    print("       └─────┘          └──┴──┘          ├─────┤          ├──┼──┤         ├──┼──┼──┤")
+    print("                                         │  2  │          │ 3│ 4│         │ 4│ 5│ 6│")
+    print("                                         └─────┘          └──┴──┘         ├──┼──┼──┤")
+    print("                                                                          │ 7│ 8│ 9│")
+    print("                                                                          └──┴──┴──┘\n")
+    print("  Layout 1-5 (b=back, q=quit): ", end='', flush=True)
     try:
         choice = _getch(); print(choice)
         if choice.lower() == 'q': return None
