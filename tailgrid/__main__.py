@@ -224,9 +224,21 @@ def _resume_session():
         return "back"
     except (EOFError, KeyboardInterrupt): print(); return None
 
+LOGO = """
+ ┌──────┬──────┬──────┐
+ │ tail │ tail │ tail │   ████████╗ █████╗ ██╗██╗      ██████╗ ██████╗ ██╗██████╗
+ ├──────┼──────┼──────┤   ╚══██╔══╝██╔══██╗██║██║     ██╔════╝ ██╔══██╗██║██╔══██╗
+ │ tail │ tail │ tail │      ██║   ███████║██║██║     ██║  ███╗██████╔╝██║██║  ██║
+ ├──────┼──────┼──────┤      ██║   ██╔══██║██║██║     ██║   ██║██╔══██╗██║██║  ██║
+ │ tail │ tail │ tail │      ██║   ██║  ██║██║███████╗╚██████╔╝██║  ██║██║██████╔╝
+ └──────┴──────┴──────┘      ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
+"""
+
 def prompt_setup():
+    first = True
     while True:
-        print("\n  \033[1mtailgrid\033[0m - Multi-file tail viewer\n")
+        if first: print(LOGO); first = False
+        print("  \033[1mtailgrid\033[0m - Multi-file tail viewer\n")
         print("    1) Browse directory\n    2) Add paths manually\n    3) Resume session\n")
         print("  Select 1-3 (q=quit): ", end='', flush=True)
         try:
