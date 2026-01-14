@@ -44,9 +44,8 @@ No Enter key needed - just press the number:
     1) Browse directory
     2) Add paths manually
     3) Resume session
-    q) Quit
 
-  Select [1-3]:
+  Select 1-3 (q=quit):
 ```
 
 ## Browse directory
@@ -54,7 +53,7 @@ No Enter key needed - just press the number:
 Select `1` to browse a directory and pick files interactively:
 
 ```
-  Directory path: /var/log/
+  Directory path (b=back, q=quit): /var/log/
 ```
 
 The file picker lets you select multiple files:
@@ -102,7 +101,7 @@ Select `3` from main menu to restore one of the last 10 sessions:
        • ~/app/logs/debug.log
        • ~/app/logs/info.log
 
-  Select [0-1]:
+  Select 0-1 (b=back, q=quit):
 ```
 
 Sessions are stored in `~/.config/tailgrid/sessions.json`.
@@ -114,16 +113,18 @@ Select `2` to manually enter paths and pick a layout:
 ```
   Select layout:
 
-    1) Single        2) Vertical      3) Horizontal    4) Grid
-       ┌─────┐          ┌──┬──┐          ┌─────┐          ┌──┬──┐
-       │  1  │          │ 1│ 2│          │  1  │          │ 1│ 2│
-       └─────┘          └──┴──┘          ├─────┤          ├──┼──┤
-                                         │  2  │          │ 3│ 4│
-                                         └─────┘          └──┴──┘
+    1) Single        2) Vertical      3) Horizontal    4) 2x2 Grid     5) 3x3 Grid
+       ┌─────┐          ┌──┬──┐          ┌─────┐          ┌──┬──┐         ┌──┬──┬──┐
+       │  1  │          │ 1│ 2│          │  1  │          │ 1│ 2│         │ 1│ 2│ 3│
+       └─────┘          └──┴──┘          ├─────┤          ├──┼──┤         ├──┼──┼──┤
+                                         │  2  │          │ 3│ 4│         │ 4│ 5│ 6│
+                                         └─────┘          └──┴──┘         ├──┼──┼──┤
+                                                                          │ 7│ 8│ 9│
+                                                                          └──┴──┴──┘
 
-  Layout [1-4]: 4
+  Layout 1-5 (b=back, q=quit): 4
 
-  Enter 4 file path(s):
+  Enter 4 file path(s) (b=back, q=quit):
 
     [1] /var/log/syslog
     [2] /var/log/auth.log
