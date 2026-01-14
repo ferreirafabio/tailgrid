@@ -232,12 +232,14 @@ LOGO = """
  ├──────┼──────┼──────┤      ██║   ██╔══██║██║██║     ██║   ██║██╔══██╗██║██║  ██║
  │ tail │ tail │ tail │      ██║   ██║  ██║██║███████╗╚██████╔╝██║  ██║██║██████╔╝
  └──────┴──────┴──────┘      ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
+
+                          watch multiple files · grid-view · one terminal · zero deps
 """
 
 def prompt_setup():
     first = True
     while True:
-        if first: print(LOGO); print("  watch multiple files · grid-view · one terminal · zero deps\n"); first = False
+        if first: print(LOGO); first = False
         print("    1) Browse directory\n    2) Add paths manually\n    3) Resume session\n")
         print("  Select 1-3 (q=quit): ", end='', flush=True)
         try:
