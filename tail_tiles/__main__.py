@@ -8,14 +8,20 @@ LAYOUTS = {'1': (1, 1), '2': (2, 1), '3': (1, 2), '4': (2, 2), '5': (3, 3), '9':
 MAX_SESSIONS, CONFIG_DIR = 10, Path.home() / ".config" / "tail_tiles"
 SESSIONS_FILE = CONFIG_DIR / "sessions.json"
 
-def _getch():
-    """Read a single character without waiting for Enter."""
+def _getch(read_all=False):
+    """Read a single character without waiting for Enter. If read_all=True, read all available chars (for paste)."""
+    import select
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     try:
         tty.setraw(fd)
         ch = sys.stdin.read(1)
         if ch == '\x03': raise KeyboardInterrupt  # Ctrl+C
+        if read_all:  # Read any remaining buffered input (paste)
+            while select.select([sys.stdin], [], [], 0.01)[0]:
+                more = sys.stdin.read(1)
+                if more == '\x03': raise KeyboardInterrupt
+                ch += more
         return ch
     finally: termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
@@ -165,22 +171,12 @@ def run_viewer(filepaths: list[str], layout: tuple[int, int], initial_lines: int
 
 def _input_with_escape(prompt: str) -> str | None:
     """Input that allows instant b=back, q=quit, or full text entry."""
-    import select
     print(prompt, end='', flush=True)
-    first = _getch()
-    if first.lower() == 'q': print(first); return None
-    if first.lower() == 'b' or first == '\n': print(first); return ""
-    # Check for pasted content (more chars immediately available)
-    pasted = first
-    while select.select([sys.stdin], [], [], 0)[0]:
-        pasted += sys.stdin.read(1)
-    if len(pasted) > 1:  # Was a paste, return all of it
-        print(pasted, end='', flush=True)
-        _setup_readline()
-        try: rest = input()
-        except (EOFError, KeyboardInterrupt): return None
-        return pasted + rest
-    # Single char typed, use readline for rest
+    first = _getch(read_all=True)  # Read all available chars (handles paste)
+    if len(first) == 1:
+        if first.lower() == 'q': print(first); return None
+        if first.lower() == 'b' or first == '\n': print(first); return ""
+    # Show what was typed/pasted and continue with readline
     print(first, end='', flush=True)
     _setup_readline()
     try: rest = input()

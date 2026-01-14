@@ -1,6 +1,6 @@
 """tail_tiles - Multi-tile tail viewer for terminal."""
 
-__version__ = "0.2.5"
+__version__ = "0.2.6"
 
 def __getattr__(name):
     """Lazy import to avoid RuntimeWarning when running as module."""
