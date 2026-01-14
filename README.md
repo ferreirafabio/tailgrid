@@ -39,8 +39,8 @@ tailgrid
 
 **Quick start with path** (auto-selects `.txt` and `.log` files, newest first):
 ```bash
-tailgrid /var/log/       # up to 9 files
-tailgrid /var/log/ 4     # only 4 newest files
+tailgrid /var/log/       # selects all files up to 9 (newest)
+tailgrid /var/log/ 4     # 4 newest files shown in 2x2 grid
 ```
 
 **From source:**
