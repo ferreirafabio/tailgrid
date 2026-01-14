@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/ferreirafabio/tailgrid/actions/workflows/ci.yml/badge.svg)](https://github.com/ferreirafabio/tailgrid/actions/workflows/ci.yml)
 
+<img src="tailgrid.png" alt="tailgrid logo" width="70%">
+
 > Multi-tile tail viewer for terminal in under 280 lines of code
 
 A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. Features an interactive file picker and session manager. Tested under Ubuntu and macOS.
