@@ -6,9 +6,9 @@
  │ tail │ tail │ tail │   ╚══██╔══╝██╔══██╗██║██║     ██╔════╝ ██╔══██╗██║██╔══██╗
  ├──────┼──────┼──────┤      ██║   ███████║██║██║     ██║  ███╗██████╔╝██║██║  ██║
  │ tail │ tail │ tail │      ██║   ██╔══██║██║██║     ██║   ██║██╔══██╗██║██║  ██║
- └──────┴──────┴──────┘      ██║   ██║  ██║██║███████╗╚██████╔╝██║  ██║██║██████╔╝
-                             ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
-
+ ├──────┼──────┼──────┤      ██║   ██║  ██║██║███████╗╚██████╔╝██║  ██║██║██████╔╝
+ │ tail │ tail │ tail │      ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
+ └──────┴──────┴──────┘
                           watch multiple files · grid-view · one terminal · zero deps
 ```
 
@@ -37,9 +37,10 @@ pip install tailgrid
 tailgrid
 ```
 
-**Quick start with path** (auto-selects `.txt` and `.log` files, max 9, newest first):
+**Quick start with path** (auto-selects `.txt` and `.log` files, newest first):
 ```bash
-tailgrid /var/log/
+tailgrid /var/log/       # up to 9 files
+tailgrid /var/log/ 4     # only 4 newest files
 ```
 
 **From source:**

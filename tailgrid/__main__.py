@@ -229,9 +229,9 @@ LOGO = """
  │ tail │ tail │ tail │   ╚══██╔══╝██╔══██╗██║██║     ██╔════╝ ██╔══██╗██║██╔══██╗
  ├──────┼──────┼──────┤      ██║   ███████║██║██║     ██║  ███╗██████╔╝██║██║  ██║
  │ tail │ tail │ tail │      ██║   ██╔══██║██║██║     ██║   ██║██╔══██╗██║██║  ██║
- └──────┴──────┴──────┘      ██║   ██║  ██║██║███████╗╚██████╔╝██║  ██║██║██████╔╝
-                             ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
-
+ ├──────┼──────┼──────┤      ██║   ██║  ██║██║███████╗╚██████╔╝██║  ██║██║██████╔╝
+ │ tail │ tail │ tail │      ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
+ └──────┴──────┴──────┘
                           watch multiple files · grid-view · one terminal · zero deps
 """
 
@@ -248,15 +248,15 @@ def prompt_setup():
             if result != "back": return result
         except (EOFError, KeyboardInterrupt): print(); return None
 
-def quick_start(directory):
-    """Auto-select .txt and .log files from directory (max 9, newest first)."""
+def quick_start(directory, count=9):
+    """Auto-select .txt and .log files from directory (newest first)."""
     directory = os.path.expanduser(directory)
     if not os.path.isdir(directory): print(f"  Not a directory: {directory}"); return None
     files = [os.path.join(directory, f) for f in os.listdir(directory)
              if f.endswith(('.txt', '.log')) and os.path.isfile(os.path.join(directory, f))]
     if not files: print(f"  No .txt or .log files in: {directory}"); return None
     files.sort(key=lambda f: os.path.getmtime(f), reverse=True)
-    paths = files[:9]
+    paths = files[:min(count, 9)]
     layout = auto_layout(len(paths)) or (2, 1)
     print(LOGO)
     print(f"  Found {len(paths)} file(s) in {directory}\n")
@@ -266,7 +266,8 @@ def quick_start(directory):
 
 def main():
     if len(sys.argv) > 1:
-        result = quick_start(sys.argv[1])
+        count = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 9
+        result = quick_start(sys.argv[1], count)
     else:
         result = prompt_setup()
     if result: run_viewer(*result); return 0
