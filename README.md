@@ -35,17 +35,24 @@ pip install tailgrid
 tailgrid
 ```
 
-**Quick start with path** (auto-selects `.txt`/`.log`/`.out`/`.err` files, newest first):
-```bash
-tailgrid /var/log/       # selects all files up to 9 (newest)
-tailgrid /var/log/ 4     # 4 newest files shown in 2x2 grid
-```
-
 **From source:**
 ```bash
 git clone https://github.com/ferreirafabio/tailgrid.git
 cd tailgrid
 python -m tailgrid
+```
+
+### Usage
+
+**With directory** (auto-selects `.txt`/`.log`/`.out`/`.err` files, newest first):
+```bash
+tailgrid /var/log/       # selects up to 9 files (newest)
+tailgrid /var/log/ 4     # 4 newest files in 2x2 grid
+```
+
+**With multiple files:**
+```bash
+tailgrid train.log eval.log debug.log   # auto-arranges in grid
 ```
 
 ### Claude integration
