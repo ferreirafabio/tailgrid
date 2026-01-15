@@ -14,17 +14,17 @@
 
 <img src="tailgrid.png" alt="tailgrid screenshot" width="70%">
 
-A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. ~315 lines of code. Tested on Ubuntu and macOS. Brought to you & tested via Claude Code Opus 4.5.
+A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. Tested on Ubuntu and macOS.
 
 ## Features
 
 - **Zero dependencies** — Python 3.10+ standard library only
-- **Quick path** — `tailgrid /path/` auto-selects `.txt`/`.log`/`.out`/`.err` files
+- **Quick path** — `tailgrid /path/` auto-selects log files (configurable extensions)
 - **Up to 9 tiles** — auto-layout or manual grid selection
-- **Scroll mode** — freeze tile with `f`, scroll with `j`/`k`
+- **Scroll mode** — `Enter` to scroll, `j`/`k`, `u`/`d`, `gg`/`G`
 - **Session restore** — saves last 10 sessions
 
-**Viewer:** `+`/`-` lines | `f` freeze | `j`/`k` scroll | `Tab` focus | `q` quit
+**Viewer:** `Enter` scroll | `←→↑↓` nav | `↑↓` `u`/`d` `gg`/`G` scroll | `q` quit
 
 ## Quick start
 
@@ -107,6 +107,18 @@ Select `3` from menu to restore one of the last 10 sessions:
 ```
 
 Sessions are stored in `~/.config/tailgrid/sessions.json`.
+
+### Config
+
+Customize quick-start file extensions via `~/.config/tailgrid/config.json`:
+
+```json
+{
+  "extensions": [".txt", ".log", ".out", ".err", ".json"]
+}
+```
+
+Default extensions: `.txt`, `.log`, `.out`, `.err`
 
 ### Add paths manually
 

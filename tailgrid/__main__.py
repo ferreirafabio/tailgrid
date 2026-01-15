@@ -6,7 +6,16 @@ from pathlib import Path
 
 LAYOUTS = {'1': (1, 1), '2': (2, 1), '3': (1, 2), '4': (2, 2), '5': (3, 3), '9': (3, 3)}
 MAX_SESSIONS, CONFIG_DIR = 10, Path.home() / ".config" / "tailgrid"
-SESSIONS_FILE = CONFIG_DIR / "sessions.json"
+SESSIONS_FILE, CONFIG_FILE = CONFIG_DIR / "sessions.json", CONFIG_DIR / "config.json"
+DEFAULT_EXTENSIONS = ['.txt', '.log', '.out', '.err']
+
+def load_config():
+    try:
+        if CONFIG_FILE.exists():
+            cfg = json.loads(CONFIG_FILE.read_text())
+            return cfg.get('extensions', DEFAULT_EXTENSIONS)
+    except (OSError, json.JSONDecodeError): pass
+    return DEFAULT_EXTENSIONS
 
 def _getch():
     fd, old = sys.stdin.fileno(), termios.tcgetattr(sys.stdin.fileno())
@@ -109,44 +118,60 @@ class TailTile:
         if self.frozen:
             max_offset = max(0, len(self._frozen_content) - self.lines)
             self.scroll_offset = clamp(self.scroll_offset + delta, 0, max_offset)
+    def scroll_top(self):
+        if self.frozen: self.scroll_offset = max(0, len(self._frozen_content) - self.lines)
+    def scroll_bottom(self):
+        if self.frozen: self.scroll_offset = 0
+    def total_lines(self):
+        try:
+            with open(self.filepath, 'r', encoding='utf-8', errors='replace') as f:
+                return sum(1 for _ in f)
+        except OSError: return 0
 
 class TileRenderer:
     def __init__(self, stdscr, tiles, layout):
         self.stdscr, self.tiles, self.rows, self.cols = stdscr, tiles, layout[0], layout[1]
-        self.line_count, self.focused = tiles[0].lines if tiles else 10, 0
+        self.focused = 0
     def render(self):
         self.stdscr.clear(); h, w = self.stdscr.getmaxyx(); tile_h, tile_w = (h - 1) // self.rows, w // self.cols
+        content_h = tile_h - 2
+        for tile in self.tiles:
+            if tile.lines != content_h: tile.lines, tile._last_stat = content_h, (0, 0)
+        curses.init_pair(3, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         for i, tile in enumerate(self.tiles): self._draw_tile(tile, (i // self.cols) * tile_h, (i % self.cols) * tile_w, tile_h, tile_w, i)
         ft = self.tiles[self.focused] if self.focused < len(self.tiles) else None
         if ft and ft.frozen:
             pos = len(ft._frozen_content) - ft.scroll_offset
-            status = f" FROZEN [{self.focused+1}] line {pos}/{len(ft._frozen_content)} │ j/k scroll │ f unfreeze │ q quit "
+            status = f" SCROLL [{self.focused+1}] line {pos}/{len(ft._frozen_content)} │ ↑↓ u/d gg/G: Scroll │ Enter: Exit │ q: Quit "
         else:
-            status = f" tailgrid │ lines: {self.line_count} │ +/- adjust │ f freeze │ Tab focus │ q quit "
+            total = ft.total_lines() if ft else 0
+            status = f" [{self.focused+1}] {total} lines │ Enter: Scroll mode │ ←→↑↓: Nav │ q: Quit "
         try: self.stdscr.addstr(h - 1, 0, status[:w-1].ljust(w-1), curses.A_REVERSE)
         except curses.error: pass
         self.stdscr.refresh()
     def _draw_tile(self, tile, y, x, h, w, idx):
         try:
             is_focused = idx == self.focused
-            border_attr = curses.A_BOLD if is_focused else curses.A_DIM
+            if tile.frozen:
+                border_attr = curses.color_pair(5) | curses.A_BOLD
+            elif is_focused:
+                border_attr = curses.color_pair(4) | curses.A_BOLD
+            else:
+                border_attr = curses.A_DIM
             frozen_mark = " ❄" if tile.frozen else ""
             name = os.path.basename(tile.filepath); name = name[:w-12] + "..." if len(name) > w - 9 else name
             header = f"┌─ {idx+1}:{name}{frozen_mark} " + "─" * (w - len(name) - len(frozen_mark) - 8) + "┐"
             self.stdscr.addstr(y, x, header[:w], border_attr)
-            path = "…" + tile.filepath[-(w-5):] if len(tile.filepath) > w - 4 else tile.filepath
-            self.stdscr.addstr(y + 1, x, "│", border_attr); self.stdscr.addstr(y + 1, x + 1, f" {path}"[:w-3], curses.A_DIM)
-            self.stdscr.addstr(y + 1, x + w - 1, "│", border_attr); content = tile.get_content()
-            for row in range(h - 3):
-                if y + 2 + row >= y + h - 1: break
-                self.stdscr.addstr(y + 2 + row, x, "│", border_attr)
-                if row < len(content): self.stdscr.addstr(y + 2 + row, x + 1, f" {content[row]}"[:w-3])
-                self.stdscr.addstr(y + 2 + row, x + w - 1, "│", border_attr)
+            content = tile.get_content()
+            for row in range(h - 2):
+                if y + 1 + row >= y + h - 1: break
+                self.stdscr.addstr(y + 1 + row, x, "│", border_attr)
+                if row < len(content): self.stdscr.addstr(y + 1 + row, x + 1, f" {content[row]}"[:w-3])
+                self.stdscr.addstr(y + 1 + row, x + w - 1, "│", border_attr)
             self.stdscr.addstr(y + h - 1, x, "└" + "─" * (w - 2) + "┘", border_attr)
         except curses.error: pass
-    def adjust_lines(self, delta):
-        self.line_count = clamp(self.line_count + delta, 1, 100)
-        for tile in self.tiles: tile.lines, tile._last_stat = self.line_count, (0, 0)
 
 def run_viewer(filepaths, layout, initial_lines):
     save_session(filepaths, layout, initial_lines)
@@ -154,6 +179,7 @@ def run_viewer(filepaths, layout, initial_lines):
         curses.curs_set(0); stdscr.timeout(100)
         tiles = [TailTile(fp, initial_lines) for fp in filepaths]
         renderer, redraw, last_size = TileRenderer(stdscr, tiles, layout), True, os.get_terminal_size()
+        last_key, last_key_time = None, 0
         for tile in tiles: tile.update()
         while True:
             try:
@@ -163,26 +189,44 @@ def run_viewer(filepaths, layout, initial_lines):
             for tile in tiles:
                 if tile.update(): redraw = True
             key = stdscr.getch()
+            ft = tiles[renderer.focused]
             if key == ord('q'): break
-            elif key in (ord('+'), ord('=')): renderer.adjust_lines(1); redraw = True
-            elif key in (ord('-'), ord('_')): renderer.adjust_lines(-1); redraw = True
             elif key == ord('r'):
                 for tile in tiles: tile._last_stat = (0, 0); tile.update()
                 redraw = True
-            elif key == ord('f'):
-                ft = tiles[renderer.focused]
+            elif key in (ord('\n'), curses.KEY_ENTER, 10):
                 if ft.frozen: ft.unfreeze()
                 else: ft.freeze()
                 redraw = True
             elif key == ord('\t'):
                 renderer.focused = (renderer.focused + 1) % len(tiles); redraw = True
-            elif key in (ord('j'), curses.KEY_DOWN):
-                tiles[renderer.focused].scroll(-1); redraw = True
-            elif key in (ord('k'), curses.KEY_UP):
-                tiles[renderer.focused].scroll(1); redraw = True
+            elif key == curses.KEY_UP:
+                if ft.frozen: ft.scroll(1)
+                else: renderer.focused = (renderer.focused - renderer.cols) % len(tiles)
+                redraw = True
+            elif key == curses.KEY_DOWN:
+                if ft.frozen: ft.scroll(-1)
+                else: renderer.focused = (renderer.focused + renderer.cols) % len(tiles)
+                redraw = True
+            elif key == curses.KEY_LEFT:
+                if not ft.frozen: renderer.focused = (renderer.focused - 1) % len(tiles)
+                redraw = True
+            elif key == curses.KEY_RIGHT:
+                if not ft.frozen: renderer.focused = (renderer.focused + 1) % len(tiles)
+                redraw = True
+            elif key == ord('j'): ft.scroll(-1); redraw = True
+            elif key == ord('k'): ft.scroll(1); redraw = True
+            elif key in (ord('u'), curses.KEY_PPAGE): ft.scroll(10); redraw = True
+            elif key in (ord('d'), curses.KEY_NPAGE): ft.scroll(-10); redraw = True
+            elif key == ord('g'):
+                now = time.time()
+                if last_key == ord('g') and now - last_key_time < 0.5: ft.scroll_top(); redraw = True
+                last_key, last_key_time = key, now
+            elif key == ord('G'): ft.scroll_bottom(); redraw = True
             elif key in range(ord('1'), ord('1') + len(tiles)):
                 renderer.focused = key - ord('1'); redraw = True
             elif key == curses.KEY_RESIZE: curses.update_lines_cols(); stdscr.erase(); redraw = True
+            if key != -1: last_key, last_key_time = key, time.time()
             if redraw: renderer.render(); redraw = False
     try: curses.wrapper(viewer)
     except KeyboardInterrupt: pass
@@ -288,12 +332,13 @@ def prompt_setup():
         except (EOFError, KeyboardInterrupt): print(); return None
 
 def quick_start(directory, count=9):
-    """Auto-select log files (.txt/.log/.out/.err) from directory (newest first)."""
+    """Auto-select log files from directory (newest first). Extensions from config.json."""
     directory = os.path.expanduser(directory)
     if not os.path.isdir(directory): print(f"  Not a directory: {directory}"); return None
+    extensions = tuple(load_config())
     files = [os.path.join(directory, f) for f in os.listdir(directory)
-             if f.endswith(('.txt', '.log', '.out', '.err')) and os.path.isfile(os.path.join(directory, f))]
-    if not files: print(f"  No .txt/.log/.out/.err files in: {directory}"); return None
+             if f.endswith(extensions) and os.path.isfile(os.path.join(directory, f))]
+    if not files: print(f"  No {'/'.join(extensions)} files in: {directory}"); return None
     files.sort(key=lambda f: os.path.getmtime(f), reverse=True)
     paths = files[:min(count, 9)]
     layout = auto_layout(len(paths)) or (2, 1)
