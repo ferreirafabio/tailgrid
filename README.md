@@ -24,7 +24,7 @@ A minimal, dependency-free Python tool to monitor multiple log files simultaneou
 - **Scroll mode** — `Enter` to scroll, `↑↓` `u`/`d` `gg`/`G`
 - **Session restore** — saves last 10 sessions
 
-**Viewer:** `←→↑↓`: Nav | `Enter`: Scroll mode | `q`: Quit
+**Viewer:** `←→↑↓`: Nav | `Enter`: Scroll mode (`↑↓` `u`/`d` `gg`/`G`) | `q`: Quit
 
 ## Quick start
 
