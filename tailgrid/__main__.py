@@ -86,38 +86,63 @@ def auto_layout(n): return (1, 1) if n <= 1 else None if n == 2 else (2, 2) if n
 class TailTile:
     def __init__(self, filepath, lines=10):
         self.filepath, self.lines, self._content, self._last_stat = filepath, lines, [], (0.0, 0)
+        self.frozen, self.scroll_offset, self._frozen_content = False, 0, []
     def update(self):
+        if self.frozen: return False
         try: stat = os.stat(self.filepath); current = (stat.st_mtime, stat.st_size)
         except OSError:
             if self._content: self._content = []; return True
             return False
         if current != self._last_stat: self._last_stat, self._content = current, read_last_n_lines(self.filepath, self.lines); return True
         return False
-    def get_content(self): return self._content.copy()
+    def get_content(self):
+        if self.frozen:
+            end = len(self._frozen_content) - self.scroll_offset
+            start = max(0, end - self.lines)
+            return self._frozen_content[start:end]
+        return self._content.copy()
+    def freeze(self):
+        self.frozen, self.scroll_offset = True, 0
+        self._frozen_content = read_last_n_lines(self.filepath, 1000)
+    def unfreeze(self): self.frozen, self.scroll_offset, self._last_stat = False, 0, (0, 0)
+    def scroll(self, delta):
+        if self.frozen:
+            max_offset = max(0, len(self._frozen_content) - self.lines)
+            self.scroll_offset = clamp(self.scroll_offset + delta, 0, max_offset)
 
 class TileRenderer:
     def __init__(self, stdscr, tiles, layout):
         self.stdscr, self.tiles, self.rows, self.cols = stdscr, tiles, layout[0], layout[1]
-        self.line_count = tiles[0].lines if tiles else 10
+        self.line_count, self.focused = tiles[0].lines if tiles else 10, 0
     def render(self):
         self.stdscr.clear(); h, w = self.stdscr.getmaxyx(); tile_h, tile_w = (h - 1) // self.rows, w // self.cols
         for i, tile in enumerate(self.tiles): self._draw_tile(tile, (i // self.cols) * tile_h, (i % self.cols) * tile_w, tile_h, tile_w, i)
-        try: self.stdscr.addstr(h - 1, 0, f" tailgrid │ lines: {self.line_count} │ +/- adjust │ r refresh │ q quit "[:w-1].ljust(w-1), curses.A_REVERSE)
+        ft = self.tiles[self.focused] if self.focused < len(self.tiles) else None
+        if ft and ft.frozen:
+            pos = len(ft._frozen_content) - ft.scroll_offset
+            status = f" FROZEN [{self.focused+1}] line {pos}/{len(ft._frozen_content)} │ j/k scroll │ f unfreeze │ q quit "
+        else:
+            status = f" tailgrid │ lines: {self.line_count} │ +/- adjust │ f freeze │ Tab focus │ q quit "
+        try: self.stdscr.addstr(h - 1, 0, status[:w-1].ljust(w-1), curses.A_REVERSE)
         except curses.error: pass
         self.stdscr.refresh()
     def _draw_tile(self, tile, y, x, h, w, idx):
         try:
-            name = os.path.basename(tile.filepath); name = name[:w-9] + "..." if len(name) > w - 6 else name
-            self.stdscr.addstr(y, x, ("┌─ " + f"{idx+1}:{name} " + "─" * (w - len(name) - 8) + "┐")[:w], curses.A_DIM)
+            is_focused = idx == self.focused
+            border_attr = curses.A_BOLD if is_focused else curses.A_DIM
+            frozen_mark = " ❄" if tile.frozen else ""
+            name = os.path.basename(tile.filepath); name = name[:w-12] + "..." if len(name) > w - 9 else name
+            header = f"┌─ {idx+1}:{name}{frozen_mark} " + "─" * (w - len(name) - len(frozen_mark) - 8) + "┐"
+            self.stdscr.addstr(y, x, header[:w], border_attr)
             path = "…" + tile.filepath[-(w-5):] if len(tile.filepath) > w - 4 else tile.filepath
-            self.stdscr.addstr(y + 1, x, "│", curses.A_DIM); self.stdscr.addstr(y + 1, x + 1, f" {path}"[:w-3], curses.A_DIM)
-            self.stdscr.addstr(y + 1, x + w - 1, "│", curses.A_DIM); content = tile.get_content()
+            self.stdscr.addstr(y + 1, x, "│", border_attr); self.stdscr.addstr(y + 1, x + 1, f" {path}"[:w-3], curses.A_DIM)
+            self.stdscr.addstr(y + 1, x + w - 1, "│", border_attr); content = tile.get_content()
             for row in range(h - 3):
                 if y + 2 + row >= y + h - 1: break
-                self.stdscr.addstr(y + 2 + row, x, "│", curses.A_DIM)
+                self.stdscr.addstr(y + 2 + row, x, "│", border_attr)
                 if row < len(content): self.stdscr.addstr(y + 2 + row, x + 1, f" {content[row]}"[:w-3])
-                self.stdscr.addstr(y + 2 + row, x + w - 1, "│", curses.A_DIM)
-            self.stdscr.addstr(y + h - 1, x, "└" + "─" * (w - 2) + "┘", curses.A_DIM)
+                self.stdscr.addstr(y + 2 + row, x + w - 1, "│", border_attr)
+            self.stdscr.addstr(y + h - 1, x, "└" + "─" * (w - 2) + "┘", border_attr)
         except curses.error: pass
     def adjust_lines(self, delta):
         self.line_count = clamp(self.line_count + delta, 1, 100)
@@ -144,9 +169,23 @@ def run_viewer(filepaths, layout, initial_lines):
             elif key == ord('r'):
                 for tile in tiles: tile._last_stat = (0, 0); tile.update()
                 redraw = True
+            elif key == ord('f'):
+                ft = tiles[renderer.focused]
+                if ft.frozen: ft.unfreeze()
+                else: ft.freeze()
+                redraw = True
+            elif key == ord('\t'):
+                renderer.focused = (renderer.focused + 1) % len(tiles); redraw = True
+            elif key in (ord('j'), curses.KEY_DOWN):
+                tiles[renderer.focused].scroll(-1); redraw = True
+            elif key in (ord('k'), curses.KEY_UP):
+                tiles[renderer.focused].scroll(1); redraw = True
+            elif key in range(ord('1'), ord('1') + len(tiles)):
+                renderer.focused = key - ord('1'); redraw = True
             elif key == curses.KEY_RESIZE: curses.update_lines_cols(); stdscr.erase(); redraw = True
             if redraw: renderer.render(); redraw = False
-    curses.wrapper(viewer)
+    try: curses.wrapper(viewer)
+    except KeyboardInterrupt: pass
 
 def _input(prompt):
     _setup_readline()
