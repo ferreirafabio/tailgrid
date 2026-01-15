@@ -50,7 +50,7 @@ python -m tailgrid
 
 ### Claude integration
 
-If you have [Claude Code](https://claude.ai/claude-code) installed, let Claude intelligently select relevant log files:
+Requires [Claude Code CLI](https://claude.ai/claude-code) to be installed and available in your PATH. Let Claude intelligently select relevant log files:
 
 ```bash
 tailgrid --claude
