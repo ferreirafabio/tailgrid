@@ -12,10 +12,8 @@
                           watch multiple files · grid-view · one terminal · zero deps
 ```
 
-<p>
-<img src="tailgrid1.png" alt="tailgrid screenshot 1" width="49%">
-<img src="tailgrid2.png" alt="tailgrid screenshot 2" width="49%">
-</p>
+<img src="tailgrid1.png" alt="tailgrid normal mode" width="100%">
+<img src="tailgrid2.png" alt="tailgrid scroll mode" width="100%">
 
 A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. Tested on Ubuntu and macOS.
 
