@@ -9,7 +9,16 @@ MAX_SESSIONS, CONFIG_DIR = 10, Path.home() / ".config" / "tailgrid"
 SESSIONS_FILE, CONFIG_FILE = CONFIG_DIR / "sessions.json", CONFIG_DIR / "config.json"
 DEFAULT_EXTENSIONS = ['.txt', '.log', '.out', '.err']
 
-DEFAULT_CONFIG = {'extensions': DEFAULT_EXTENSIONS, 'show_full_path': False}
+DEFAULT_CLAUDE_PROMPT = """Return absolute paths to FILES (max 9) for the most relevant log files to monitor.
+No directories, only files. Consider: your current session, recent experiments, active projects, subagent activity.
+If multiple projects exist, prioritize the most recent or currently running ones.
+Return ONLY existing file paths with a brief description for each.
+The description should be high-level: what project/experiment, what kind of output, why useful to watch.
+Format (one per line):
+/path/to/file.log | Project X - training logs for GPT experiment, shows loss curves
+/path/to/debug.log | Tailgrid dev - debug output from current Claude Code session"""
+
+DEFAULT_CONFIG = {'extensions': DEFAULT_EXTENSIONS, 'show_full_path': False, 'claude_prompt': DEFAULT_CLAUDE_PROMPT}
 
 def load_config():
     try:
@@ -389,14 +398,8 @@ def quick_start(directory, count=9):
 def claude_discover_paths():
     """Ask Claude CLI to return relevant session log paths with per-file reasoning."""
     import subprocess
-    prompt = """Return absolute paths to FILES (max 9) for the most relevant log files to monitor.
-No directories, only files. Consider: your current session, recent experiments, active projects, subagent activity.
-If multiple projects exist, prioritize the most recent or currently running ones.
-Return ONLY existing file paths with a brief description for each.
-The description should be high-level: what project/experiment, what kind of output, why useful to watch.
-Format (one per line):
-/path/to/file.log | Project X - training logs for GPT experiment, shows loss curves
-/path/to/debug.log | Tailgrid dev - debug output from current Claude Code session"""
+    config = load_config()
+    prompt = config.get('claude_prompt', DEFAULT_CLAUDE_PROMPT)
     try:
         result = subprocess.run(['claude', '-p', prompt], capture_output=True, text=True, timeout=60)
         output = result.stdout.strip()

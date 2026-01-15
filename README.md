@@ -134,12 +134,14 @@ Customize settings via `~/.config/tailgrid/config.json`:
 ```json
 {
   "extensions": [".txt", ".log", ".out", ".err", ".json"],
-  "show_full_path": false
+  "show_full_path": false,
+  "claude_prompt": "Return absolute paths to FILES..."
 }
 ```
 
 - `extensions`: File types for quick-start (default: `.txt`, `.log`, `.out`, `.err`)
 - `show_full_path`: Show full path in tile headers instead of filename (default: `false`)
+- `claude_prompt`: Custom prompt for `--claude` mode (default: asks for relevant logs with descriptions)
 
 ### Add paths manually
 
