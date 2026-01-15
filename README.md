@@ -19,12 +19,12 @@ A minimal, dependency-free Python tool to monitor multiple log files simultaneou
 ## Features
 
 - **Zero dependencies** — Python 3.10+ standard library only
-- **Quick path** — `tailgrid /path/` auto-selects log files (configurable extensions)
-- **Up to 9 tiles** — auto-layout or manual grid selection
-- **Scroll mode** — `Enter` to scroll, `j`/`k`, `u`/`d`, `gg`/`G`
+- **Quick path** — `tailgrid /path/` auto-selects log files (configurable via `config.json`)
+- **Up to 9 tiles** — auto-layout, auto-height
+- **Scroll mode** — `Enter` to scroll, `↑↓` `u`/`d` `gg`/`G`
 - **Session restore** — saves last 10 sessions
 
-**Viewer:** `Enter` scroll | `←→↑↓` nav | `↑↓` `u`/`d` `gg`/`G` scroll | `q` quit
+**Viewer:** `←→↑↓`: Nav | `Enter`: Scroll mode | `q`: Quit
 
 ## Quick start
 
