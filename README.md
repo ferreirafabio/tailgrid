@@ -19,7 +19,7 @@ A minimal, dependency-free Python tool to monitor multiple log files simultaneou
 ## Features
 
 - **Zero dependencies** — Python 3.10+ standard library only
-- **Quick path** — `tailgrid /var/log/` auto-selects `.txt`/`.log` files
+- **Quick path** — `tailgrid /path/` auto-selects `.txt`/`.log`/`.out`/`.err` files
 - **Up to 9 tiles** — auto-layout or manual grid selection
 - **Session restore** — saves last 10 sessions
 - **Live updates** — 100ms polling, terminal resize support
@@ -34,7 +34,7 @@ pip install tailgrid
 tailgrid
 ```
 
-**Quick start with path** (auto-selects `.txt` and `.log` files, newest first):
+**Quick start with path** (auto-selects `.txt`/`.log`/`.out`/`.err` files, newest first):
 ```bash
 tailgrid /var/log/       # selects all files up to 9 (newest)
 tailgrid /var/log/ 4     # 4 newest files shown in 2x2 grid

@@ -249,12 +249,12 @@ def prompt_setup():
         except (EOFError, KeyboardInterrupt): print(); return None
 
 def quick_start(directory, count=9):
-    """Auto-select .txt and .log files from directory (newest first)."""
+    """Auto-select log files (.txt/.log/.out/.err) from directory (newest first)."""
     directory = os.path.expanduser(directory)
     if not os.path.isdir(directory): print(f"  Not a directory: {directory}"); return None
     files = [os.path.join(directory, f) for f in os.listdir(directory)
-             if f.endswith(('.txt', '.log')) and os.path.isfile(os.path.join(directory, f))]
-    if not files: print(f"  No .txt or .log files in: {directory}"); return None
+             if f.endswith(('.txt', '.log', '.out', '.err')) and os.path.isfile(os.path.join(directory, f))]
+    if not files: print(f"  No .txt/.log/.out/.err files in: {directory}"); return None
     files.sort(key=lambda f: os.path.getmtime(f), reverse=True)
     paths = files[:min(count, 9)]
     layout = auto_layout(len(paths)) or (2, 1)
