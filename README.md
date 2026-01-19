@@ -9,12 +9,12 @@
  ├──────┼──────┼──────┤      ██║   ██║  ██║██║███████╗╚██████╔╝██║  ██║██║██████╔╝
  │ tail │ tail │ tail │      ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
  └──────┴──────┴──────┘
-                          watch multiple files · grid-view · one terminal · zero deps
+                    watch multiple files · grid-view · auto-discover logs via Claude
 ```
 
 <img src="tailgrid-demo.gif?v=9" alt="tailgrid demo" width="100%">
 
-A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a single terminal window. Like `tail -f`, but for up to 9 files at once in a clean tiled layout. Tested on Ubuntu and macOS.
+A minimal, dependency-free Python tool to monitor multiple log files simultaneously in a tiled grid layout. Like `tail -f`, but for up to 9 files at once. Claude Code can auto-discover relevant logs to monitor. Tested on Ubuntu and macOS.
 
 ## Features
 
