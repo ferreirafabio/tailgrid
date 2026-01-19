@@ -9,7 +9,7 @@
  ├──────┼──────┼──────┤      ██║   ██║  ██║██║███████╗╚██████╔╝██║  ██║██║██████╔╝
  │ tail │ tail │ tail │      ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═════╝
  └──────┴──────┴──────┘
-                    watch multiple files · grid-view · auto-discover logs via Claude
+                       watch multiple files · grid-view · auto-discover logs via Claude
 ```
 
 <img src="tailgrid-demo.gif?v=9" alt="tailgrid demo" width="100%">
